@@ -70,7 +70,7 @@ USER_OBJS  		:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS)))
 
 
 
-USER_TARGET 	:= $(OBJ_DIR)/app_helloworld_no_lds
+USER_TARGET 	:= $(OBJ_DIR)/app_naive_malloc
 #------------------------targets------------------------
 $(OBJ_DIR):
 	@-mkdir -p $(OBJ_DIR)	
