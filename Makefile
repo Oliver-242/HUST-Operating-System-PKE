@@ -70,7 +70,7 @@ USER_OBJS  		:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS)))
 
 
 
-USER_TARGET 	:= $(OBJ_DIR)/app_sum_sequence
+USER_TARGET 	:= $(OBJ_DIR)/app_singlepageheap
 #------------------------targets------------------------
 $(OBJ_DIR):
 	@-mkdir -p $(OBJ_DIR)	

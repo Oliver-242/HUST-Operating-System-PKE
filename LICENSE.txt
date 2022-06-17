@@ -4,8 +4,9 @@ Copyright License
 The PKE software is:
 
 Copyright (c) 2021, Zhiyuan Shao (zyshao@hust.edu.cn), 
-                    Yi Gui (gy163email@163.com), 
-                    Yan Jiao (773709579@qq.com),
+                    Yixin Song (474309045@qq.com),
+                    Ziming Yuan (1223962053@qq.com),
+                    Boyang Li (liboyang_hust@163.com),
                    Huazhong University of Science and Technology
 
 Permission is hereby granted, free of charge, to any person obtaining

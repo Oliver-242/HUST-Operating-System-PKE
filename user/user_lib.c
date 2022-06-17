@@ -51,15 +51,15 @@ int exit(int code) {
 }
 
 //
-// lib call to naive_malloc
+// lib call to better_malloc
 //
-void* naive_malloc() {
-  return (void*)do_user_call(SYS_user_allocate_page, 0, 0, 0, 0, 0, 0, 0);
+void* better_malloc(int n) {
+  return (void*)do_user_call(SYS_user_allocate_page, n, 0, 0, 0, 0, 0, 0);
 }
 
 //
-// lib call to naive_free
+// lib call to better_free
 //
-void naive_free(void* va) {
+void better_free(void* va) {
   do_user_call(SYS_user_free_page, (uint64)va, 0, 0, 0, 0, 0, 0);
 }
