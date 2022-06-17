@@ -14,12 +14,25 @@ static void handle_misaligned_load() { panic("Misaligned Load!"); }
 
 static void handle_misaligned_store() { panic("Misaligned AMO!"); }
 
+// added @lab1_3
+static void handle_timer() {
+  int cpuid = 0;
+  // setup the timer fired at next time (TIMER_INTERVAL from now)
+  *(uint64*)CLINT_MTIMECMP(cpuid) = *(uint64*)CLINT_MTIMECMP(cpuid) + TIMER_INTERVAL;
+
+  // setup a soft interrupt in sip (S-mode Interrupt Pending) to be handled in S-mode
+  write_csr(sip, SIP_SSIP);
+}
+
 //
 // handle_mtrap calls a handling function according to the type of a machine mode interrupt (trap).
 //
 void handle_mtrap() {
   uint64 mcause = read_csr(mcause);
   switch (mcause) {
+    case CAUSE_MTIMER:
+      handle_timer();
+      break;
     case CAUSE_FETCH_ACCESS:
       handle_instruction_access_fault();
       break;

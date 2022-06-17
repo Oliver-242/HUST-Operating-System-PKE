@@ -52,6 +52,18 @@
 #define CAUSE_LOAD_PAGE_FAULT 0xd      // Load page fault
 #define CAUSE_STORE_PAGE_FAULT 0xf     // Store/AMO page fault
 
+// irqs (interrupts). added @lab1_3
+#define CAUSE_MTIMER 0x8000000000000007
+#define CAUSE_MTIMER_S_TRAP 0x8000000000000001
+
+//Supervisor interrupt-pending register
+#define SIP_SSIP (1L << 1)
+
+// core local interruptor (CLINT), which contains the timer.
+#define CLINT 0x2000000L
+#define CLINT_MTIMECMP(hartid) (CLINT + 0x4000 + 8 * (hartid))
+#define CLINT_MTIME (CLINT + 0xBFF8)  // cycles since boot.
+
 // fields of sstatus, the Supervisor mode Status register
 #define SSTATUS_SPP (1L << 8)   // Previous mode, 1=Supervisor, 0=User
 #define SSTATUS_SPIE (1L << 5)  // Supervisor Previous Interrupt Enable
