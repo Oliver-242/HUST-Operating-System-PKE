@@ -10,14 +10,19 @@
 #include "string.h"
 #include "process.h"
 #include "util/functions.h"
-
+#include "pmm.h"
+#include "vmm.h"
 #include "spike_interface/spike_utils.h"
 
 //
 // implement the SYS_user_print syscall
 //
 ssize_t sys_user_print(const char* buf, size_t n) {
-  sprint(buf);
+  // buf is now an address in user space of the given app's user stack,
+  // so we have to transfer it into phisical address (kernel is running in direct mapping).
+  assert( current );
+  char* pa = (char*)user_va_to_pa((pagetable_t)(current->pagetable), (void*)buf);
+  sprint(pa);
   return 0;
 }
 

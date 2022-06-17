@@ -13,18 +13,25 @@ typedef struct trapframe_t {
   /* offset:256 */ uint64 kernel_trap;
   // saved user process counter
   /* offset:264 */ uint64 epc;
+
+  // kernel page table. added @lab2_1
+  /* offset:272 */ uint64 kernel_satp;
 }trapframe;
 
 // the extremely simple definition of process, used for begining labs of PKE
 typedef struct process_t {
   // pointing to the stack used in trap handling.
   uint64 kstack;
+  // user page table
+  pagetable_t pagetable;
   // trapframe storing the context of a (User mode) process.
   trapframe* trapframe;
 }process;
 
+// switch to run user app
 void switch_to(process*);
 
+// current running process
 extern process* current;
 
 #endif

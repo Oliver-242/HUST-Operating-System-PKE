@@ -6,6 +6,8 @@
 #include "elf.h"
 #include "string.h"
 #include "riscv.h"
+#include "vmm.h"
+#include "pmm.h"
 #include "spike_interface/spike_utils.h"
 
 typedef struct elf_info_t {
@@ -14,11 +16,21 @@ typedef struct elf_info_t {
 } elf_info;
 
 //
-// the implementation of allocater. allocates memory space for later segment loading
+// the implementation of allocater. allocates memory space for later segment loading.
+// this allocater is heavily modified @lab2_1, where we do NOT work in bare mode.
 //
 static void *elf_alloc_mb(elf_ctx *ctx, uint64 elf_pa, uint64 elf_va, uint64 size) {
-  // directly returns the virtual address as we are in the Bare mode in lab1_x
-  return (void *)elf_va;
+  elf_info *msg = (elf_info *)ctx->info;
+  // we assume that size of proram segment is smaller than a page.
+  kassert(size < PGSIZE);
+  void *pa = alloc_page();
+  if (pa == 0) panic("uvmalloc mem alloc falied\n");
+
+  memset((void *)pa, 0, PGSIZE);
+  user_vm_map((pagetable_t)msg->p->pagetable, elf_va, PGSIZE, (uint64)pa,
+         prot_to_type(PROT_WRITE | PROT_READ | PROT_EXEC, 1));
+
+  return pa;
 }
 
 //
@@ -48,7 +60,7 @@ elf_status elf_init(elf_ctx *ctx, void *info) {
 }
 
 //
-// load the elf segments to memory regions as we are in Bare mode in lab1
+// load the elf segments to memory regions.
 //
 elf_status elf_load(elf_ctx *ctx) {
   // elf_prog_header structure is defined in kernel/elf.h
