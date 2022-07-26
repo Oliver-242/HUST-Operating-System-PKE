@@ -25,6 +25,11 @@ typedef struct elf_header_t {
   uint16 shstrndx;  /* Section header string table index */
 } elf_header;
 
+// segment types, attributes of elf_prog_header_t.flags
+#define SEGMENT_READABLE   0x4
+#define SEGMENT_EXECUTABLE 0x1
+#define SEGMENT_WRITABLE   0x2
+
 // Program segment header.
 typedef struct elf_prog_header_t {
   uint32 type;   /* Segment type */

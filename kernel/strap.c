@@ -8,6 +8,7 @@
 #include "syscall.h"
 #include "pmm.h"
 #include "vmm.h"
+#include "sched.h"
 #include "util/functions.h"
 
 #include "spike_interface/spike_utils.h"

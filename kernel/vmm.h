@@ -2,6 +2,7 @@
 #define _VMM_H_
 
 #include "riscv.h"
+#include "process.h"
 
 /* --- utility functions for virtual address mapping --- */
 int map_pages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm);
@@ -30,5 +31,6 @@ void kern_vm_init(void);
 void *user_va_to_pa(pagetable_t page_dir, void *va);
 void user_vm_map(pagetable_t page_dir, uint64 va, uint64 size, uint64 pa, int perm);
 void user_vm_unmap(pagetable_t page_dir, uint64 va, uint64 size, int free);
+void print_proc_vmspace(process* proc);
 
 #endif

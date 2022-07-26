@@ -187,3 +187,21 @@ void user_vm_unmap(pagetable_t page_dir, uint64 va, uint64 size, int free) {
   panic( "You have to implement user_vm_unmap to free pages using naive_free in lab2_2.\n" );
 
 }
+
+//
+// debug function, print the vm space of a process. added @lab3_1
+//
+void print_proc_vmspace(process* proc) {
+  sprint( "======\tbelow is the vm space of process%d\t========\n", proc->pid );
+  for( int i=0; i<proc->total_mapped_region; i++ ){
+    sprint( "-va:%lx, npage:%d, ", proc->mapped_info[i].va, proc->mapped_info[i].npages);
+    switch(proc->mapped_info[i].seg_type){
+      case CODE_SEGMENT: sprint( "type: CODE SEGMENT" ); break;
+      case DATA_SEGMENT: sprint( "type: DATA SEGMENT" ); break;
+      case STACK_SEGMENT: sprint( "type: STACK SEGMENT" ); break;
+      case CONTEXT_SEGMENT: sprint( "type: TRAPFRAME SEGMENT" ); break;
+      case SYSTEM_SEGMENT: sprint( "type: USER KERNEL STACK SEGMENT" ); break;
+    }
+    sprint( ", mapped to pa:%lx\n", lookup_pa(proc->pagetable, proc->mapped_info[i].va) );
+  }
+}
