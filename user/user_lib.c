@@ -69,3 +69,10 @@ void naive_free(void* va) {
 int fork() {
   return do_user_call(SYS_user_fork, 0, 0, 0, 0, 0, 0, 0);
 }
+
+//
+// lib call to yield
+//
+void yield() {
+  do_user_call(SYS_user_yield, 0, 0, 0, 0, 0, 0, 0);
+}

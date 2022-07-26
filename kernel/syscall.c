@@ -69,6 +69,19 @@ ssize_t sys_user_fork() {
 }
 
 //
+// kerenl entry point of yield. added @lab3_2
+//
+ssize_t sys_user_yield() {
+  // TODO (lab3_2): implment the syscall of yield.
+  // hint: the functionality of yield is to give up the processor. therefore,
+  // we should set the status of currently running process to READY, insert it in
+  // the rear of ready queue, and finally, schedule a READY process to run.
+  panic( "You need to implement the yield syscall in lab3_2.\n" );
+
+  return 0;
+}
+
+//
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
 // returns the code of success, (e.g., 0 means success, fail for otherwise)
 //
@@ -85,6 +98,8 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
       return sys_user_free_page(a1);
     case SYS_user_fork:
       return sys_user_fork();
+    case SYS_user_yield:
+      return sys_user_yield();
     default:
       panic("Unknown syscall %ld \n", a0);
   }
