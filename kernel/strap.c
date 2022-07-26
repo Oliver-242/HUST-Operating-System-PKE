@@ -68,6 +68,18 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
 }
 
 //
+// implements round-robin scheduling. added @lab3_3
+//
+void rrsched() {
+  // TODO (lab3_3): implements round-robin scheduling.
+  // hint: increase the tick_count member of current process by one, if it is bigger than
+  // TIME_SLICE_LEN (means it has consumed its time slice), change its status into READY,
+  // place it in the rear of ready queue, and finally schedule next process to run.
+  panic( "You need to further implement the timer handling in lab3_3.\n" );
+
+}
+
+//
 // kernel/smode_trap.S will pass control to smode_trap_handler, when a trap happens
 // in S-mode.
 //
@@ -91,6 +103,8 @@ void smode_trap_handler(void) {
       break;
     case CAUSE_MTIMER_S_TRAP:
       handle_mtimer_trap();
+      // invoke round-robin scheduler. added @lab3_3
+      rrsched();
       break;
     case CAUSE_STORE_PAGE_FAULT:
     case CAUSE_LOAD_PAGE_FAULT:
