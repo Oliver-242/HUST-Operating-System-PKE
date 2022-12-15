@@ -92,11 +92,16 @@ process* alloc_process();
 int free_process( process* proc );
 // fork a child from parent
 int do_fork(process* parent);
+// wait for a child process
+int do_wait(int pid);
 
 // current running process
 extern process* current;
 
 // address of the first free page in our simple heap. added @lab2_2
 extern uint64 g_ufree_page;
+
+void insert_to_blocked_queue(process* proc);
+void remove_and_insert(process* proc);
 
 #endif

@@ -76,3 +76,16 @@ int fork() {
 void yield() {
   do_user_call(SYS_user_yield, 0, 0, 0, 0, 0, 0, 0);
 }
+
+//
+// lib call to wait
+//
+int wait(int pid){
+  int temp;
+  temp = do_user_call(SYS_user_wait, pid, 0, 0, 0, 0, 0, 0);
+  if(temp >= -1) return temp;
+  //else return -2;     //temp == -2,represent child process is still running
+  else {
+    return 0;
+    }
+}

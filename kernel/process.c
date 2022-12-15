@@ -35,6 +35,8 @@ process* current = NULL;
 // points to the first free page in our simple heap. added @lab2_2
 uint64 g_ufree_page = USER_FREE_ADDRESS_START;
 
+process* blocked_queue_head = NULL;
+
 //
 // switch to a user-mode process
 //
@@ -189,25 +191,40 @@ int do_fork( process* parent)
         // hint: the virtual address mapping of code segment is tracked in mapped_info
         // page of parent's process structure. use the information in mapped_info to
         // retrieve the virtual to physical mapping of code segment.
-        // after having the mapping information, just map the corresponding virtual
+        // after having the mapping information, just map the corresponding virtual 
         // address region of child to the physical pages that actually store the code
-        // segment of parent process.
+        // segment of parent process. 
         // DO NOT COPY THE PHYSICAL PAGES, JUST MAP THEM.
-        map_pages(
-          child->pagetable,
-          parent->mapped_info[i].va,
-          parent->mapped_info[i].npages*PGSIZE,
-          lookup_pa(parent->pagetable,
-          parent->mapped_info[i].va),
-          prot_to_type(
-            PROT_EXEC|PROT_READ,1
-        ));
+        for( int j=0; j<parent->mapped_info[i].npages; j++ ){
+            uint64 addr = lookup_pa(parent->pagetable, parent->mapped_info[i].va+j*PGSIZE);
+
+            map_pages(child->pagetable, parent->mapped_info[i].va+j*PGSIZE, PGSIZE,
+                    addr, prot_to_type(PROT_WRITE | PROT_READ | PROT_EXEC, 1));
+
+            sprint( "do_fork map code segment at pa:%lx of parent to child at va:%lx.\n",
+                    addr, parent->mapped_info[i].va+j*PGSIZE );
+        }
 
         // after mapping, register the vm region (do not delete codes below!)
         child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
-        child->mapped_info[child->total_mapped_region].npages =
+        child->mapped_info[child->total_mapped_region].npages = 
           parent->mapped_info[i].npages;
         child->mapped_info[child->total_mapped_region].seg_type = CODE_SEGMENT;
+        child->total_mapped_region++;
+        break;
+      case DATA_SEGMENT:
+        for( int j=0; j<parent->mapped_info[i].npages; j++ ){
+            uint64 addr = lookup_pa(parent->pagetable, parent->mapped_info[i].va+j*PGSIZE);
+            char *newaddr = alloc_page(); memcpy(newaddr, (void *)addr, PGSIZE);
+            map_pages(child->pagetable, parent->mapped_info[i].va+j*PGSIZE, PGSIZE,
+                    (uint64)newaddr, prot_to_type(PROT_WRITE | PROT_READ, 1));
+        }
+
+        // after mapping, register the vm region (do not delete codes below!)
+        child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
+        child->mapped_info[child->total_mapped_region].npages = 
+          parent->mapped_info[i].npages;
+        child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
         child->total_mapped_region++;
         break;
     }
@@ -219,4 +236,87 @@ int do_fork( process* parent)
   insert_to_ready_queue( child );
 
   return child->pid;
+}
+
+int do_wait(int pid)
+{
+  int found = 0;
+  if (pid == -1) {
+    for (int i = 0; i < NPROC; i++)
+      if (procs[i].parent == current) {
+        found = 1;
+          if (procs[i].status == ZOMBIE) {
+          procs[i].status = FREE;
+          return i;
+          }
+      }
+    if (found == 0) return -1;   //current parent process doesn't have child process. invalid!
+    else {
+      insert_to_blocked_queue(current);
+      //current->status = BLOCKED;
+      schedule();
+      return -2;
+    }     //there exists a child process without ZOMBIE status
+  }
+  else if (pid < NPROC) {     //a possibly valid specified child process
+    if (procs[pid].parent != current) return -1;//child process with input pid isn't current parent process's child
+    else {
+      if (procs[pid].status == ZOMBIE) {
+        procs[pid].status = FREE;
+        return pid;
+      }
+      else {
+        insert_to_blocked_queue(current);
+        //current->status = BLOCKED;
+        schedule();
+        return -2;
+    }  
+    }
+  }
+  else return -1;   //invalid inputs
+}
+
+void insert_to_blocked_queue(process *proc) 
+{
+  if( blocked_queue_head == NULL ){
+    proc->status = BLOCKED;
+    proc->queue_next = NULL;
+    blocked_queue_head = proc;
+    return;
+  }
+  // blocked queue is not empty
+  process *p;
+  // browse the blocked queue to see if proc is already in-queue
+  for( p=blocked_queue_head; p->queue_next!=NULL; p=p->queue_next )
+    if( p == proc ) return;  //already in queue
+
+  // p points to the last element of the blocked queue
+  if( p==proc ) return;
+
+  p->queue_next = proc;
+  proc->status = BLOCKED;
+  proc->queue_next = NULL;
+  return;
+}
+
+void remove_and_insert(process* proc)
+{
+  process* wakeup = NULL;
+  process* p;
+  if(blocked_queue_head == NULL) reutrn;
+  if(blocked_queue_head == proc->parent){
+    wakeup = blocked_queue_head;
+    blocked_queue_head = blocked_queue_head->queue_next;
+    wakeup->status = READY;
+    insert_to_ready_queue(wakeup);
+    return;
+  }
+  for( p=blocked_queue_head; p->queue_next!=NULL; p=p->queue_next )
+    if( p->queue_next == proc->parent ) {
+      wakeup = p->queue_next;
+      p->queue_next = p->queue_next->queue_next;
+      wakeup->status = READY;
+      insert_to_ready_queue(wakeup);
+      return;
+    }
 }

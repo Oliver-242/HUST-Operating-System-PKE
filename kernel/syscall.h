@@ -14,6 +14,8 @@
 // added @lab3_1
 #define SYS_user_fork (SYS_user_base + 4)
 #define SYS_user_yield (SYS_user_base + 5)
+//added @lab3_challenge_1
+#define SYS_user_wait (SYS_user_base + 6)
 
 long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, long a7);
 
