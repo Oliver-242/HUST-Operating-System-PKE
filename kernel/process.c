@@ -253,7 +253,6 @@ int do_wait(int pid)
     if (found == 0) return -1;   //current parent process doesn't have child process. invalid!
     else {
       insert_to_blocked_queue(current);
-      //current->status = BLOCKED;
       schedule();
       return -2;
     }     //there exists a child process without ZOMBIE status
@@ -267,7 +266,6 @@ int do_wait(int pid)
       }
       else {
         insert_to_blocked_queue(current);
-        //current->status = BLOCKED;
         schedule();
         return -2;
     }  
