@@ -1,28 +1,31 @@
 /*
- * The application of lab3_3.
- * parent and child processes never give up their processor during execution.
+ * This app fork a child process, and the child process fork a grandchild process.
+ * every process waits for its own child exit then prints.                     
+ * Three processes also write their own global variables "flag"
+ * to different values.
  */
 
 #include "user/user_lib.h"
 #include "util/types.h"
 
+int flag;
 int main(void) {
-  uint64 pid = fork();
-  uint64 rounds = 100000000;
-  uint64 interval = 10000000;
-  uint64 a = 0;
-  if (pid == 0) {
-    printu("Child: Hello world! \n");
-    for (uint64 i = 0; i < rounds; ++i) {
-      if (i % interval == 0) printu("Child running %ld \n", i);
+    flag = 0;
+    int pid = fork();
+    if (pid == 0) {
+        flag = 1;
+        pid = fork();
+        if (pid == 0) {
+            flag = 2;
+            printu("Grandchild process end, flag = %d.\n", flag);
+        } else {
+            wait(pid);
+            printu("Child process end, flag = %d.\n", flag);
+        }
+    } else {
+        wait(-1);
+        printu("Parent process end, flag = %d.\n", flag);
     }
-  } else {
-    printu("Parent: Hello world! \n");
-    for (uint64 i = 0; i < rounds; ++i) {
-      if (i % interval == 0) printu("Parent running %ld \n", i);
-    }
-  }
-
-  exit(0);
-  return 0;
+    exit(0);
+    return 0;
 }
