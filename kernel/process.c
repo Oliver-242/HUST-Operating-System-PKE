@@ -301,7 +301,7 @@ void remove_and_insert(process* proc)
 {
   process* wakeup = NULL;
   process* p;
-  if(blocked_queue_head == NULL) reutrn;
+  if(blocked_queue_head == NULL) return;
   if(blocked_queue_head == proc->parent){
     wakeup = blocked_queue_head;
     blocked_queue_head = blocked_queue_head->queue_next;
