@@ -101,6 +101,14 @@ static size_t parse_args(arg_buf *arg_bug_msg) {
   return pk_argc - arg;
 }
 
+
+
+void load_func_name(elf_ctx *ctx) {
+
+}
+
+
+
 //
 // load the elf of user application, by using the spike file interface.
 //
@@ -129,6 +137,8 @@ void load_bincode_from_host_elf(process *p) {
 
   // load elf. elf_load() is defined above.
   if (elf_load(&elfloader) != EL_OK) panic("Fail on loading elf.\n");
+
+  load_func_name(&elfloader);
 
   // entry (virtual, also physical in lab1_x) address
   p->trapframe->epc = elfloader.ehdr.entry;
