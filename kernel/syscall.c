@@ -32,9 +32,21 @@ ssize_t sys_user_exit(uint64 code) {
 }
 
 
+int func_name_printer(uint64 ret_addr) {
+  
+}
+
+
 ssize_t sys_backtrace(uint64 depth) {
   sprint("this is sys_backtrace\n");
-  return 0;
+  uint64 trace_sp = current->trapframe->regs.s0 + 32;
+  uint64 trace_ra = trace_sp + 8;
+  uint64 yiminai = 0;
+  for(; yiminai<depth; yiminai++) {
+    if(func_name_printer(trace_ra) == 0) return yiminai;
+    trace_ra += 16;
+  }
+  return yiminai;
 }
 
 //
