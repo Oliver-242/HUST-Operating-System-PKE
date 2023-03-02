@@ -10,8 +10,13 @@
 #include "string.h"
 #include "process.h"
 #include "util/functions.h"
+#include "elf.h"
 
 #include "spike_interface/spike_utils.h"
+
+extern elf_symbol symbols[64];
+extern char sym_names[64][32];
+extern int sym_count;
 
 //
 // implement the SYS_user_print syscall
@@ -33,17 +38,25 @@ ssize_t sys_user_exit(uint64 code) {
 
 
 int func_name_printer(uint64 ret_addr) {
-  
+  for(int i=0;i<sym_count;i++){
+    //sprint("%d %d %d\n", ret_addr, symbols[i].st_value, symbols[i].st_size);
+    if(ret_addr >= symbols[i].st_value && ret_addr < symbols[i].st_value+symbols[i].st_size){
+      sprint("%s\n",sym_names[i]);
+      if(strcmp(sym_names[i],"main")==0) return 0;
+      return 1;
+    }
+  }
+  return 1;
 }
 
 
 ssize_t sys_backtrace(uint64 depth) {
-  sprint("this is sys_backtrace\n");
-  uint64 trace_sp = current->trapframe->regs.s0 + 32;
+  //sprint("this is sys_backtrace\n");
+  uint64 trace_sp = current->trapframe->regs.sp + 32;
   uint64 trace_ra = trace_sp + 8;
   uint64 yiminai = 0;
   for(; yiminai<depth; yiminai++) {
-    if(func_name_printer(trace_ra) == 0) return yiminai;
+    if(func_name_printer(*(uint64*)trace_ra) == 0) return yiminai;
     trace_ra += 16;
   }
   return yiminai;
