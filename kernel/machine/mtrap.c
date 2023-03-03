@@ -21,7 +21,7 @@ void error_printer() {
       full_path[dir_len] = '/';
       strcpy(full_path+dir_len+1, current->file[excpline->file].file);   
       //filename places after dir/, code_file->file stores the filename
-      sprint(full_path);sprint("%d",excpline->line);sprint("\n");
+      //sprint(full_path);sprint("%d",excpline->line);sprint("\n");
 
       //read illegal instruction through spike_file functions
       spike_file_t * _file_ = spike_file_open(full_path, O_RDONLY, 0);
