@@ -26,7 +26,7 @@ void error_printer() {
       //read illegal instruction through spike_file functions
       spike_file_t * _file_ = spike_file_open(full_path, O_RDONLY, 0);
       spike_file_stat(_file_, &f_stat);
-      spike_file_read(_file_, full_file, f_stat.st_size);
+      spike_file_read(_file_, full_file, f_stat.st_size);     //read whole file to full_file[8192]
       spike_file_close(_file_);
       int offset = 0, count = 0;
       while (offset < f_stat.st_size) {
