@@ -6,15 +6,12 @@
 
 char full_path[256];
 char full_file[8192];
-struct stat *f_stat;
+struct stat f_stat;
 
 void error_printer() {
   uint64 exception_addr = read_csr(mepc);
-  sprint("%d\n", (uint64)(exception_addr));
-  sprint("%d\n", current->line_ind);
-  for(int i=0; i<current->line_ind; i+=1) {
-    sprint("%d\n", i);
-    sprint("%d\n", (uint64)(current->line[i].addr));
+
+  for(int i=0; i<current->line_ind; i++) {
     if(exception_addr < current->line[i].addr){        //illegal instruction is on line (i-1)
       addr_line *excpline = current->line + i - 1;
 
@@ -24,17 +21,17 @@ void error_printer() {
       full_path[dir_len] = '/';
       strcpy(full_path+dir_len+1, current->file[excpline->file].file);   
       //filename places after dir/, code_file->file stores the filename
-      //sprint(full_path);
+      sprint(full_path);sprint("%d",excpline->line);sprint("\n");
 
       //read illegal instruction through spike_file functions
       spike_file_t * _file_ = spike_file_open(full_path, O_RDONLY, 0);
-      spike_file_stat(_file_, f_stat);
-      spike_file_read(_file_, full_file, f_stat->st_size);
+      spike_file_stat(_file_, &f_stat);
+      spike_file_read(_file_, full_file, f_stat.st_size);
       spike_file_close(_file_);
       int offset = 0, count = 0;
-      while (offset < f_stat->st_size) {
+      while (offset < f_stat.st_size) {
         int temp = offset;
-        while (temp < f_stat->st_size && full_file[temp] != '\n') temp++;     //find every line
+        while (temp < f_stat.st_size && full_file[temp] != '\n') temp++;     //find every line
         if (count == excpline->line - 1) {
         full_file[temp] = '\0';
         sprint("Runtime error at %s:%d\n%s\n", full_path, excpline->line, full_file + offset);
