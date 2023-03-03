@@ -1,18 +1,65 @@
 #include "kernel/riscv.h"
 #include "kernel/process.h"
 #include "spike_interface/spike_utils.h"
+#include "spike_interface/spike_file.h"
+#include <string.h>
 
-static void handle_instruction_access_fault() { panic("Instruction access fault!"); }
+char full_path[256];
+char full_file[8192];
+struct stat *f_stat;
 
-static void handle_load_access_fault() { panic("Load access fault!"); }
+void error_printer() {
+  uint64 exception_addr = read_csr(mepc);
+  sprint("%d\n", (uint64)(exception_addr));
+  sprint("%d\n", current->line_ind);
+  for(int i=0; i<current->line_ind; i+=1) {
+    sprint("%d\n", i);
+    sprint("%d\n", (uint64)(current->line[i].addr));
+    if(exception_addr < current->line[i].addr){        //illegal instruction is on line (i-1)
+      addr_line *excpline = current->line + i - 1;
 
-static void handle_store_access_fault() { panic("Store/AMO access fault!"); }
+      int dir_len = strlen(current->dir[current->file[excpline->file].dir]);   
+      //'**dir' stores dir string, process->line->file points out the index of code_file
+      strcpy(full_path, current->dir[current->file[excpline->file].dir]);
+      full_path[dir_len] = '/';
+      strcpy(full_path+dir_len+1, current->file[excpline->file].file);   
+      //filename places after dir/, code_file->file stores the filename
+      //sprint(full_path);
 
-static void handle_illegal_instruction() { panic("Illegal instruction!"); }
+      //read illegal instruction through spike_file functions
+      spike_file_t * _file_ = spike_file_open(full_path, O_RDONLY, 0);
+      spike_file_stat(_file_, f_stat);
+      spike_file_read(_file_, full_file, f_stat->st_size);
+      spike_file_close(_file_);
+      int offset = 0, count = 0;
+      while (offset < f_stat->st_size) {
+        int temp = offset;
+        while (temp < f_stat->st_size && full_file[temp] != '\n') temp++;     //find every line
+        if (count == excpline->line - 1) {
+        full_file[temp] = '\0';
+        sprint("Runtime error at %s:%d\n%s\n", full_path, excpline->line, full_file + offset);
+        break;
+        } else{
+          count++;
+          offset = temp + 1;
+        }
+      }
+      break;
+    }
+  }
+}
 
-static void handle_misaligned_load() { panic("Misaligned Load!"); }
+static void handle_instruction_access_fault() { error_printer(); panic("Instruction access fault!"); }
 
-static void handle_misaligned_store() { panic("Misaligned AMO!"); }
+static void handle_load_access_fault() { error_printer(); panic("Load access fault!"); }
+
+static void handle_store_access_fault() { error_printer(); panic("Store/AMO access fault!"); }
+
+static void handle_illegal_instruction() { error_printer(); panic("Illegal instruction!"); }
+
+static void handle_misaligned_load() { error_printer(); panic("Misaligned Load!"); }
+
+static void handle_misaligned_store() { error_printer(); panic("Misaligned AMO!"); }
 
 // added @lab1_3
 static void handle_timer() {

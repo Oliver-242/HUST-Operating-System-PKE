@@ -191,7 +191,7 @@ void make_addr_line(elf_ctx *ctx, char *debug_line, uint64 length) {
 endop:;
     }
     // for (int i = 0; i < p->line_ind; i++)
-    //     sprint("%p %d %d\n", p->line[i].addr, p->line[i].line, p->line[i].file);
+        // sprint("%p %d %d\n", p->line[i].addr, p->line[i].line, p->line[i].file);
 }
 
 //
@@ -248,6 +248,36 @@ static size_t parse_args(arg_buf *arg_bug_msg) {
   return pk_argc - arg;
 }
 
+elf_sect_header debug_line_sh;
+char dbline_buf[8000];
+
+void load_debug_line(elf_ctx *ctx)
+{
+  elf_sect_header shstr_sh;
+  elf_sect_header temp_sh;
+
+// find shstrtab
+  uint16 sect_num = ctx->ehdr.shnum;
+  uint64 shstr_offset = ctx->ehdr.shoff + ctx->ehdr.shstrndx * sizeof(elf_sect_header);
+  elf_fpread(ctx, (void *)&shstr_sh, sizeof(shstr_sh), shstr_offset);
+  char temp_str[shstr_sh.size];
+  uint64 shstr_sect_off = shstr_sh.offset;
+  elf_fpread(ctx, &temp_str, shstr_sh.size, shstr_sect_off);
+
+
+//find debug_line section and load
+  for(int i=0; i<sect_num; i++) {
+    elf_fpread(ctx, (void*)&temp_sh, sizeof(temp_sh), ctx->ehdr.shoff+i*ctx->ehdr.shentsize);
+    if(strcmp(temp_str+temp_sh.name,".debug_line")==0){
+      debug_line_sh = temp_sh;
+    } else{}
+  }
+
+  //sprint("%d %d\n", debug_line_sh.offset, debug_line_sh.size/sizeof(debug_header));
+  elf_fpread(ctx, (void*)&dbline_buf, debug_line_sh.size, debug_line_sh.offset);
+  make_addr_line(ctx, dbline_buf, debug_line_sh.size);
+}
+
 //
 // load the elf of user application, by using the spike file interface.
 //
@@ -279,6 +309,7 @@ void load_bincode_from_host_elf(process *p) {
 
   // entry (virtual, also physical in lab1_x) address
   p->trapframe->epc = elfloader.ehdr.entry;
+  load_debug_line(&elfloader);
 
   // close the host spike file
   spike_file_close( info.f );
