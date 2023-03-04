@@ -17,4 +17,8 @@
 // start virtual address (4MB) of our simple heap. added @lab2_2
 #define USER_FREE_ADDRESS_START 0x00000000 + PGSIZE * 1024
 
+// added lab2_challenge_2   limit size of heap to 4MB
+#define USER_FREE_SIZE 4*1024*1024
+#define USER_FREE_ADDRESS_END 0x00000000 + PGSIZE*1024 + USER_FREE_SIZE
+
 #endif
