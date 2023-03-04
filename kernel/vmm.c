@@ -226,7 +226,7 @@ uint64 user_better_malloc(uint64 n){
     cur = cur->next;
   }
   uint64 heap_top = cur_mapping;
-  malloc_mapping(sizeof(MCB) + n + 8);
+  malloc_mapping(sizeof(MCB) + n);
   pte_t *pte = page_walk(current->pagetable, heap_top, 0);
   MCB *cur_1 = (MCB*)(PTE2PA(*pte) + (heap_top & 0xfff));
   uint64 align = (uint64)cur_1 % 8;
