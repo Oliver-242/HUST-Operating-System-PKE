@@ -75,7 +75,7 @@ typedef struct process_t {
 }process;
 
 typedef struct semaphore_t {
-  uint64 value;
+  int value;
   uint64 stat;
   process *p_queue;
 }semaphore;
