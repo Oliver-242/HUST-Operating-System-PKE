@@ -16,6 +16,8 @@
 
 #include "spike_interface/spike_utils.h"
 
+extern semaphore sems[NSEM];
+
 //
 // implement the SYS_user_print syscall
 //
@@ -79,9 +81,51 @@ ssize_t sys_user_yield() {
   current->status=READY;
   insert_to_ready_queue(current);
   schedule();
-
   return 0;
 }
+
+
+int sys_user_sem_new(int n){
+  for (int i=0; i<NSEM; i++){
+    if(sems[i].stat == 0){
+      sems[i].value = n;
+      sems[i].stat = 1;
+      return i;
+    }
+  }
+  return -1;
+}
+
+
+int sys_user_sem_P(int n){
+  sems[n].value -= 1;
+  if (sems[n].value < 0) {
+    if (sems[n].p_queue == NULL) {
+      sems[n].p_queue = current;
+      current->queue_next = NULL;
+    } else{
+      process *temp = sems[n].p_queue;
+      while(temp->queue_next) temp = temp->queue_next;
+      temp->queue_next = current->queue_next;
+      temp = current;
+    }
+    current->status = BLOCKED;
+    schedule();
+   }
+  return 0;
+}
+
+
+int sys_user_sem_V(int n){
+  sems[n].value += 1;
+  if (sems[n].p_queue) {
+    process *temp = sems[n].p_queue;
+    sems[n].p_queue = temp->queue_next;
+    insert_to_ready_queue(temp);
+  }
+  return 0;
+}
+
 
 //
 // [a0]: the syscall number; [a1] ... [a7]: arguments to the syscalls.
@@ -102,6 +146,12 @@ long do_syscall(long a0, long a1, long a2, long a3, long a4, long a5, long a6, l
       return sys_user_fork();
     case SYS_user_yield:
       return sys_user_yield();
+    case SYS_user_new:
+      return sys_user_sem_new(a1);
+    case SYS_user_P:
+      return sys_user_sem_P(a1);
+    case SYS_user_V:
+      return sys_user_sem_V(a1);
     default:
       panic("Unknown syscall %ld \n", a0);
   }

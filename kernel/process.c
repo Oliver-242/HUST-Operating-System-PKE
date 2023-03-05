@@ -18,6 +18,9 @@
 #include "sched.h"
 #include "spike_interface/spike_utils.h"
 
+// semaphore pool added @lab3_challenge2
+semaphore sems[NSEM];
+
 //Two functions defined in kernel/usertrap.S
 extern char smode_trap_vector[];
 extern void return_to_user(trapframe *, uint64 satp);
@@ -82,6 +85,15 @@ void init_proc_pool() {
   for (int i = 0; i < NPROC; ++i) {
     procs[i].status = FREE;
     procs[i].pid = i;
+  }
+}
+
+void init_sem_pool() {
+  memset(sems, 0, sizeof(semaphore)*NSEM);
+  for (int i=0; i<NSEM; i++){
+    sems[i].value = 0;
+    sems[i].p_queue = NULL;
+    sems[i].stat = 0;
   }
 }
 

@@ -20,6 +20,7 @@ typedef struct trapframe_t {
 
 // riscv-pke kernel supports at most 32 processes
 #define NPROC 32
+#define NSEM  32
 
 // possible status of a process
 enum proc_status {
@@ -73,11 +74,18 @@ typedef struct process_t {
   int tick_count;
 }process;
 
+typedef struct semaphore_t {
+  uint64 value;
+  uint64 stat;
+  process *p_queue;
+}semaphore;
+
 // switch to run user app
 void switch_to(process*);
 
 // initialize process pool (the procs[] array)
 void init_proc_pool();
+void init_sem_pool();
 // allocate an empty process, init its vm space. returns its pid
 process* alloc_process();
 // reclaim a process, destruct its vm space and free physical pages.
